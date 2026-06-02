@@ -1,0 +1,443 @@
+:root {
+  --qbit-text-width: 6in;
+  --qbit-page-margin-block: 1in;
+  --qbit-rule-color: #d0d0d0;
+  --qbit-strong-rule-color: #6f6f6f;
+  --qbit-muted-color: #555;
+}
+
+@page {
+  size: letter;
+  margin: 1in 1.25in;
+}
+
+html {
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  font-size: 10pt;
+  line-height: 1.36;
+  color: #000;
+  background: #fff;
+}
+
+body {
+  box-sizing: border-box;
+  max-width: var(--qbit-text-width);
+  margin: 0 auto;
+  padding: var(--qbit-page-margin-block) 0;
+  color: inherit;
+  background: transparent;
+  hyphens: none;
+  overflow-wrap: normal;
+  widows: 2;
+  orphans: 2;
+}
+
+#title-block-header {
+  margin-bottom: 1.25rem;
+  text-align: center;
+}
+
+h1.title {
+  margin: 0 0 0.55em;
+  font-size: 1.72em;
+  line-height: 1.2;
+}
+
+.subtitle,
+.author,
+.date {
+  margin: 0.45em 0;
+}
+
+.abstract {
+  max-width: 80%;
+  margin: 1.15rem auto;
+  font-size: 0.92em;
+  text-align: left;
+}
+
+.abstract-title {
+  display: inline;
+  font-weight: 700;
+}
+
+.abstract-title::after {
+  content: ". ";
+}
+
+.abstract p {
+  display: inline;
+  margin: 0;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 700;
+  line-height: 1.2;
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+h1 {
+  margin: 1.7em 0 0.58em;
+  font-size: 1.44em;
+}
+
+h2 {
+  margin: 1.35em 0 0.46em;
+  font-size: 1.2em;
+}
+
+h3 {
+  margin: 1em 0 0.32em;
+  font-size: 1em;
+}
+
+h4 {
+  margin: 0.9em 0 0.28em;
+  font-size: 1em;
+}
+
+h1 + p,
+h2 + p,
+h3 + p,
+h4 + p {
+  break-before: avoid;
+  page-break-before: avoid;
+}
+
+p {
+  margin: 0.3em 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 0.9em;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  overflow-x: auto;
+  margin: 0.7em 0;
+  padding: 0.6em 0.75em;
+  border: 1px solid var(--qbit-rule-color);
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+pre code {
+  padding: 0;
+  background: transparent;
+}
+
+ul,
+ol {
+  margin: 0.15em 0 0.35em 1.4em;
+  padding: 0;
+  list-style-position: outside;
+}
+
+ul {
+  list-style-type: disc;
+}
+
+ol {
+  list-style-type: decimal;
+}
+
+li {
+  margin: 0.08em 0;
+  padding-left: 0.12em;
+}
+
+li > p {
+  margin: 0.08em 0;
+}
+
+li > ul,
+li > ol {
+  margin-top: 0.08em;
+  margin-bottom: 0.08em;
+}
+
+table {
+  width: 100%;
+  margin: 0.9em 0;
+  border-collapse: collapse;
+  border-top: 1px solid var(--qbit-strong-rule-color);
+  border-bottom: 1px solid var(--qbit-strong-rule-color);
+  font-size: 0.92em;
+  break-inside: auto;
+  page-break-inside: auto;
+}
+
+th,
+td {
+  padding: 0.3em 0.45em;
+  border: 0;
+  vertical-align: top;
+}
+
+th {
+  text-align: left;
+  font-weight: 700;
+}
+
+thead th {
+  border-bottom: 1px solid var(--qbit-strong-rule-color);
+}
+
+tbody tr {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+td code,
+th code {
+  white-space: normal;
+}
+
+blockquote {
+  margin: 0.7em 0;
+  padding-left: 0.8em;
+  border-left: 2px solid var(--qbit-rule-color);
+}
+
+.flow-figure {
+  margin: 1em 0;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.flow-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45em;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.flow-steps.mining {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.flow-steps li {
+  position: relative;
+  min-height: 5.2em;
+  margin: 0;
+  padding: 0.5em;
+  border: 1px solid var(--qbit-rule-color);
+  background: transparent;
+}
+
+.flow-steps li:not(:last-child)::after {
+  content: "->";
+  position: absolute;
+  top: 50%;
+  right: -0.36em;
+  transform: translate(50%, -50%);
+  color: var(--qbit-muted-color);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 0.82em;
+  background: transparent;
+  padding: 0 0.1em;
+}
+
+.flow-steps strong {
+  display: block;
+  margin-bottom: 0.25em;
+}
+
+.flow-steps span {
+  display: block;
+  font-size: 0.9em;
+}
+
+figcaption {
+  margin-top: 0.4em;
+  color: var(--qbit-muted-color);
+  font-size: 0.88em;
+}
+
+#TOC {
+  margin: 1.5em 0 2em;
+  padding: 0;
+}
+
+#TOC:empty {
+  display: none;
+}
+
+#TOC:not(:has(a)) {
+  display: none;
+}
+
+#TOC::before {
+  content: "Contents";
+  display: block;
+  margin: 0 0 1em;
+  font-size: 1.44em;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+#TOC ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#TOC li {
+  margin: 0.18em 0;
+  padding: 0;
+}
+
+#TOC li li {
+  margin-left: 1.4em;
+  font-size: 0.96em;
+}
+
+#TOC a {
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+#TOC a:hover,
+#TOC a:focus {
+  text-decoration: underline;
+}
+
+p:has(> math[display="block"]:only-child) {
+  text-align: center;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+p > math[display="block"]:only-child {
+  display: inline-block;
+  max-width: 100%;
+  overflow: visible;
+  margin: 0.85em 0;
+}
+
+math[display="inline"] {
+  line-height: 1;
+}
+
+section {
+  break-inside: auto;
+}
+
+@media screen and (max-width: 820px) {
+  :root {
+    --qbit-page-margin-block: 0.35in;
+  }
+
+  html {
+    font-size: 10pt;
+  }
+
+  body {
+    max-width: none;
+    padding-right: 18px;
+    padding-left: 18px;
+    overflow-wrap: break-word;
+  }
+
+  .abstract {
+    max-width: 100%;
+  }
+
+  h1.title {
+    font-size: 1.52em;
+    text-wrap: balance;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  p,
+  li {
+    max-width: 100%;
+  }
+
+  #TOC li li {
+    margin-left: 1em;
+  }
+
+  table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .flow-steps,
+  .flow-steps.mining {
+    grid-template-columns: 1fr;
+  }
+
+  .flow-steps li:not(:last-child)::after {
+    content: "";
+    top: auto;
+    right: auto;
+    bottom: -0.45em;
+    left: 50%;
+    width: 1px;
+    height: 0.45em;
+    padding: 0;
+    background: var(--qbit-rule-color);
+    transform: translateX(-50%);
+  }
+}
+
+@media print {
+  html {
+    background: #fff;
+  }
+
+  body {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  a {
+    text-decoration: none;
+  }
+
+  #title-block-header {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  #TOC {
+    break-after: page;
+    page-break-after: always;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  table,
+  pre,
+  blockquote,
+  .flow-figure {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  p:has(> math[display="block"]:only-child) {
+    overflow: visible;
+  }
+}

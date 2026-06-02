@@ -1,0 +1,42 @@
+# Keep the title as inline metadata; a literal block makes Pandoc emit
+# <h1><p>...</p></h1> in the default HTML template.
+title: "Qbit: Post-Quantum\\\nPeer-to-Peer Digital Value"
+author:
+  - www.qbit.org
+date: June 2, 2026
+subject: "Qbit prelaunch whitepaper for post-quantum peer-to-peer digital value"
+keywords:
+  - Qbit
+  - post-quantum
+  - whitepaper
+  - peer-to-peer digital value
+  - P2MR
+  - SLH-DSA
+  - proof of work
+abstract: |
+  Peer-to-peer digital value depends on cryptography that must remain trustworthy over
+  long time horizons. As post-quantum migration moves from theory to
+  engineering reality, open monetary networks need more than a signature
+  upgrade: they need an architecture that accounts for larger witnesses,
+  different exposure surfaces, and the operational cost of carrying
+  post-quantum data through the system. Qbit is built around that requirement.
+  It combines bounded SLH-DSA, P2MR outputs, direct pricing of witness bytes,
+  fast aggregate block cadence, dual-lane mining, and explicit
+  witness-retention modes to preserve self-custodied digital value under
+  post-quantum constraints.
+documentclass: article
+classoption:
+  - oneside
+papersize: letter
+fontsize: 10pt
+geometry:
+  - left=1.25in
+  - right=1.25in
+  - top=1.0in
+  - bottom=1.0in
+lang: en-US
+toc: false
+colorlinks: true
+linkcolor: black
+urlcolor: black
+linestretch: 1.0

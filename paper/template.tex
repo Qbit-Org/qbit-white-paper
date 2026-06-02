@@ -1,0 +1,204 @@
+$document-metadata.latex()$
+$passoptions.latex()$
+\documentclass[
+$for(babel-otherlangs)$
+  $babel-otherlangs$,
+$endfor$
+$if(babel-lang)$
+  $babel-lang$,
+$endif$
+$if(fontsize)$
+  $fontsize$,
+$endif$
+$if(papersize)$
+  $papersize$paper,
+$endif$
+$for(classoption)$
+  $classoption$$sep$,
+$endfor$
+]{$documentclass$}
+
+\usepackage{xcolor}
+
+$if(geometry)$
+\usepackage[$for(geometry)$$geometry$$sep$,$endfor$]{geometry}
+$endif$
+\usepackage{amsmath,amssymb}
+$if(cancel)$
+\usepackage{cancel}
+$endif$
+$if(numbersections)$
+\setcounter{secnumdepth}{$if(secnumdepth)$$secnumdepth$$else$5$endif$}
+$else$
+\setcounter{secnumdepth}{-\maxdimen}
+$endif$
+$fonts.latex()$
+$font-settings.latex()$
+$common.latex()$
+\usepackage{microtype}
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{etoolbox}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{needspace}
+\usepackage{tikz}
+\usepackage{placeins}
+\usepackage{tabularx}
+\usetikzlibrary{arrows.meta,positioning,calc}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.30em}
+\setlength{\emergencystretch}{3em}
+\frenchspacing
+\renewcommand{\arraystretch}{1.06}
+\setlist[itemize]{leftmargin=1.4em, itemsep=0.08em, topsep=0.15em}
+\setlist[enumerate]{leftmargin=1.4em, itemsep=0.08em, topsep=0.15em}
+\captionsetup{labelfont=bf, font=small, skip=4pt}
+\setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
+\setlength{\intextsep}{10pt plus 2pt minus 2pt}
+\setlength{\floatsep}{8pt plus 2pt minus 2pt}
+\renewenvironment{abstract}
+  {\begin{center}\begin{minipage}{0.80\textwidth}\small\noindent\textbf{Abstract. }\ignorespaces}
+  {\par\end{minipage}\end{center}\vspace{1.15em}}
+
+\titleformat{\section}
+  {\Large\bfseries}
+  {\thesection}
+  {0.75em}
+  {}
+
+\titleformat{\subsection}
+  {\large\bfseries}
+  {\thesubsection}
+  {0.75em}
+  {}
+
+\titleformat{\subsubsection}
+  {\normalsize\bfseries}
+  {\thesubsubsection}
+  {0.75em}
+  {}
+
+\titlespacing*{\section}{0pt}{1.7em}{0.58em}
+\titlespacing*{\subsection}{0pt}{1.35em}{0.46em}
+\titlespacing*{\subsubsection}{0pt}{1.0em}{0.32em}
+\pretocmd{\section}{\needspace{4\baselineskip}}{}{}
+\pretocmd{\subsection}{\needspace{2\baselineskip}}{}{}
+
+\pagestyle{plain}
+
+$for(header-includes)$
+$header-includes$
+$endfor$
+$after-header-includes.latex()$
+\providecommand{\xmpquote}[1]{#1}
+$hypersetup.latex()$
+\makeatletter
+\let\qbitbreakableurl\url
+\DeclareRobustCommand{\qbitnobreakurl}[1]{\mbox{\qbitbreakableurl{#1}}}
+\let\url\qbitnobreakurl
+\makeatother
+
+\makeatletter
+\renewcommand{\maketitle}{
+  \begin{center}
+    {\LARGE\bfseries\@title\par}
+    $if(subtitle)$
+    \vspace{0.5em}
+    {\large $subtitle$\par}
+    $endif$
+    $if(author)$
+    \vspace{0.55em}
+    {\normalsize $for(author)$$author$$sep$ \and $endfor$\par}
+    $endif$
+    $if(date)$
+     \vspace{0.75em}
+    {\normalsize\@date\par}
+    $endif$
+    $if(status)$
+    \vspace{0.35em}
+    {\normalsize\textbf{Status:} $status$\par}
+    $endif$
+  \end{center}
+  \vspace{1.25em}
+}
+\makeatother
+
+$if(title)$
+\title{$title$$if(thanks)$\thanks{$thanks$}$endif$}
+$endif$
+\author{$for(author)$$author$$sep$ \and $endfor$}
+\date{$date$}
+
+\begin{document}
+$if(has-frontmatter)$
+\frontmatter
+$endif$
+$if(title)$
+\maketitle
+$if(abstract)$
+\begin{abstract}
+$abstract$
+\end{abstract}
+$endif$
+$endif$
+
+$for(include-before)$
+$include-before$
+
+$endfor$
+$if(toc)$
+{
+$if(colorlinks)$
+$if(toccolor)$
+\hypersetup{linkcolor=$toccolor$}
+$endif$
+$endif$
+\setcounter{tocdepth}{$toc-depth$}
+\tableofcontents
+\clearpage
+}
+$endif$
+$if(lof)$
+\listoffigures
+$endif$
+$if(lot)$
+\listoftables
+$endif$
+$if(linestretch)$
+\setstretch{$linestretch$}
+$endif$
+$if(has-frontmatter)$
+\mainmatter
+$endif$
+$body$
+
+$if(has-frontmatter)$
+\backmatter
+$endif$
+$if(nocite-ids)$
+\nocite{$for(nocite-ids)$$it$$sep$, $endfor$}
+$endif$
+$if(natbib)$
+$if(bibliography)$
+$if(biblio-title)$
+$if(has-chapters)$
+\renewcommand\bibname{$biblio-title$}
+$else$
+\renewcommand\refname{$biblio-title$}
+$endif$
+$endif$
+\bibliography{$for(bibliography)$$bibliography$$sep$,$endfor$}
+
+$endif$
+$endif$
+$if(biblatex)$
+\printbibliography$if(biblio-title)$[title=$biblio-title$]$endif$
+
+$endif$
+$for(include-after)$
+$include-after$
+
+$endfor$
+\end{document}
