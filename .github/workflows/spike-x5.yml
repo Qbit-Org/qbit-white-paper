@@ -1,0 +1,17 @@
+name: spike-x5
+on:
+  push:
+    branches: ['sign-test/x5']
+permissions:
+  contents: write
+jobs:
+  commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Commit through the contents API with GITHUB_TOKEN
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method PUT "repos/${GITHUB_REPOSITORY}/contents/spike/x5.txt" \
+            -f message="Spike X5: commit created by GITHUB_TOKEN" \
+            -f content="$(printf 'X5 spike\n' | base64)" -f branch="sign-test/x5" --jq .commit.sha
