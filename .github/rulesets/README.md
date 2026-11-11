@@ -12,14 +12,14 @@ repository admin applies it with `gh` from the repository root.
 
 Every commit that a push or merge adds to `main` needs a verified signature.
 Commits already on the branch aren't checked again, but an old unsigned commit
-that comes in from another branch is refused like a new one. Commits on a pull
-request's branch don't need one while it is open. Before it merges, a
-maintainer rewrites the branch as one commit, signs that commit with their own
-key and pushes it, and then merges it with a merge commit, which GitHub signs.
-So the target branch gains one commit a person signed, and one merge commit.
-For a pull request from a fork, that push needs "Allow edits by maintainers".
-Without it, a maintainer opens the same change from a branch in this
-repository.
+that a push or merge brings into an existing branch from another one is
+refused like a new one. Commits on a pull request's branch don't need one
+while it is open. Before it merges, a maintainer rewrites the branch as one
+commit, signs that commit with their own key and pushes it, and then merges it
+with a merge commit, which GitHub signs. So the target branch gains one commit
+a person signed, and one merge commit. For a pull request from a fork, that
+push needs "Allow edits by maintainers". Without it, a maintainer opens the
+same change from a branch in this repository.
 
 The maintainer's push dismisses earlier approvals. Two people approve again,
 or an organization admin merges the pull request through the review ruleset's
@@ -28,20 +28,31 @@ review rules only: nobody can bypass the required checks.
 
 [`../workflows/signed-landing.yml`](../workflows/signed-landing.yml) reports
 the `signed-landing` check on every pull request. It passes when the pull
-request is one commit that a person signed with an OpenPGP key of their own,
-and fails until then: a red `signed-landing` on an open pull request means it
-hasn't been squashed and signed yet. GitHub's signature rule can't tell that
-by itself, because it accepts any verified signature, GitHub's own included,
-such as on a web edit or an "Update branch" merge. The check is required by a
-ruleset with no bypass actors, so the merge button works only once it is
-green. It runs from the base branch's copy of the workflow, so a pull request
-can't change the rule it is judged by, and a branch must hold that file before
-a ruleset requires the check on it: a required check that nothing reports
-blocks every pull request. It guards against landing a pull request by
-mistake, not against someone set on getting round it: a pull request could
-still add a workflow of its own that reports a check of the same name. Review
-catches that, and the maintainers audit merged pull requests daily, from
-outside this repository, and report anything that got through.
+request is one commit that a person signed with an OpenPGP key that is on
+their own GitHub account, and fails until then: a red `signed-landing` on an
+open pull request usually means it hasn't been squashed and signed yet. If its
+message says it could not check, re-run it. GitHub's signature rule can't tell
+that by itself, because it accepts any verified signature, GitHub's own
+included, such as on a web edit or an "Update branch" merge. The check is
+required by a ruleset with no bypass actors, so the merge button works only
+once it is green. It always runs from the default branch's copy of the
+workflow, `main`'s, whatever branch the pull request targets, so a pull
+request can't change the rule it is judged by. It guards against landing a
+pull request by mistake, not against someone set on getting round it: a pull
+request could still add a workflow of its own that reports a check of the same
+name. Review catches that where a branch requires review, and the maintainers
+audit merged pull requests daily, from outside this repository, and report
+anything that got through.
+
+If the check stops reporting, no pull request can merge into a branch that
+requires it, and that includes the pull request that fixes the workflow,
+because it too is judged by `main`'s copy. GitHub blocks `pull_request_target`
+workflows in public repositories unless an Actions policy allows them. If that
+policy names this file by its path, renaming the file stops the check. To get
+out, a repository admin disables `required-checks` on GitHub (Settings → Rules
+→ Rulesets), merges the fix, and applies the files again. Each open pull
+request then needs a push or an edit to be judged by the fixed copy. The same
+way out serves when another required check can't run.
 
 The repository's settings allow merge commits only (Settings → General → Pull
 Requests). GitHub's squash merge would make the commit itself and sign it with
@@ -66,6 +77,10 @@ apply() {
 }
 ```
 
+Don't apply a file that requires `signed-landing` until `signed-landing.yml`
+is on `main` and the Actions policy allows it: until then nothing reports the
+check, and no pull request into a branch that requires it can merge.
+
 Then run `apply` once for each ruleset file that changed. It updates the
 ruleset of that name, or creates it when GitHub has none. For example:
 
@@ -83,9 +98,9 @@ files, then turn squash and rebase merges off. No step leaves the repository
 unable to merge, and unsigned commits can't land after the first one. The
 chain stops at the first step that fails. Fix that step and run the chain
 again: applying a file twice is harmless. Run it only once
-`signed-landing.yml` is on every branch a file requires the check on: until
-then nothing reports the check, and no pull request into that branch can
-merge.
+`signed-landing.yml` is on `main`, the default branch, and the Actions policy
+allows it. A pull request that is already open shows the check as expected
+until its next push or edit: edit its title or description to start a run.
 
 ```bash
 apply .github/rulesets/signed-commits.json &&

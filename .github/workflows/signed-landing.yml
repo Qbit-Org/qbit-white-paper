@@ -4,9 +4,12 @@
 # bots), so this check tells them apart. A branch listed in AS_IS_HEADS merges
 # as it is instead, and is not judged.
 #
-# It runs from the base branch's copy of this file (pull_request_target), so
-# a pull request can't change the rule it is judged by. It reads the pull
-# request through the API and never checks out or runs its code.
+# It always runs from the default branch's copy of this file
+# (pull_request_target), whatever branch the pull request targets, so a pull
+# request can't change the rule it is judged by. It reads the pull request
+# through the API and never checks out or runs its code. GitHub blocks this
+# event in public repositories unless an Actions policy allows it for this
+# file.
 #
 # .github/rulesets/README.md says how a pull request lands.
 name: signed-landing
@@ -57,6 +60,7 @@ jobs:
           LOGIN = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?")
           ARMOR = re.compile(r"^-----BEGIN PGP SIGNATURE-----\n(?:[^\n:]+:[^\n]*\n)*\n"
                              r"([A-Za-z0-9+/=\n]+?)\n(?:=[A-Za-z0-9+/]{4}\n)?-----END PGP SIGNATURE-----$")
+          LISTED = 100      # how many of the pull request's commits are read: a shorter list is the whole list
           HOW = "A maintainer squashes the pull request into one commit, signs it and pushes it before merging."
 
 
@@ -177,6 +181,17 @@ jobs:
               return None
 
 
+          def merges_as_is(head_ref, patterns):
+              """Whether a branch name matches one of the patterns, one path segment at a
+              time: a `*` never crosses a `/`, and `**` means nothing more than `*`."""
+              parts = head_ref.split("/")
+              for pattern in patterns:
+                  wanted = pattern.split("/")
+                  if len(wanted) == len(parts) and all(fnmatch.fnmatchcase(part, want) for part, want in zip(parts, wanted)):
+                      return True
+              return False
+
+
           def judge(pr, commits, as_is_heads, event_head, keys_of):
               """A sentence saying why the pull request may land. Raises NotReady or Unknown."""
               try:
@@ -193,10 +208,18 @@ jobs:
                   raise Behind(f"GitHub reports {head_sha[:12]} as the pull request's head, and this run is for "
                                f"{event_head[:12]}. If the pull request has moved on, the run for its new head decides. "
                                "If not, re-run this check")
-              if same_repo and any(fnmatch.fnmatchcase(head_ref, pattern) for pattern in as_is_heads):
+              if same_repo and merges_as_is(head_ref, as_is_heads):
                   return (f"`{head_ref}` is a branch that merges as it is, so this check doesn't judge its {count} "
                           "commit(s). GitHub's signature rule still requires each of them to be verified.")
               if count != 1:
+                  listed = ([commit.get("sha") for commit in commits]
+                            if isinstance(commits, list) and all(isinstance(commit, dict) for commit in commits) else None)
+                  if listed is not None and len(listed) < LISTED and head_sha not in listed:
+                      # The whole list, without this head: it is from before the push, and the count may be too.
+                      raise Behind("GitHub's list of the pull request's commits doesn't show its head yet. Re-run this check")
+                  if listed == [head_sha]:
+                      # The list says one commit and the count doesn't: one of them hasn't caught up with the push.
+                      raise Behind("GitHub's count of the pull request's commits doesn't match its list yet. Re-run this check")
                   raise NotReady(f"It has {count} commits, and it lands as one. {HOW}")
               if not isinstance(commits, list) or not all(isinstance(commit, dict) for commit in commits):
                   raise Unknown("GitHub's list of the pull request's commits has an unexpected shape")
@@ -275,7 +298,7 @@ jobs:
               try:
                   while True:
                       pr = fetch(f"/repos/{repo}/pulls/{number}", token, deadline)
-                      commits = fetch(f"/repos/{repo}/pulls/{number}/commits?per_page=2", token, deadline)
+                      commits = fetch(f"/repos/{repo}/pulls/{number}/commits?per_page={LISTED}", token, deadline)
                       try:
                           print(judge(pr, commits, as_is_heads, event_head, lambda login: committer_keys(login, token, deadline)))
                           return 0
