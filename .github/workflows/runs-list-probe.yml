@@ -1,0 +1,45 @@
+# PROBE, not a check: see the pull request. Delete with the branch.
+# Each run reads the list of this workflow's runs repeatedly and prints what it saw, to
+# measure whether a list that shows a run in progress ever omits a run created before it.
+name: runs-list-probe
+
+on:
+  pull_request:
+    types: [edited]
+
+permissions:
+  actions: read
+
+jobs:
+  probe:
+    name: runs-list-probe
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - name: Read the list of runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          python3 - <<'PY'
+          import json, os, time, urllib.request
+          repo, token, own = os.environ["REPO"], os.environ["GH_TOKEN"], int(os.environ["GITHUB_RUN_ID"])
+          url = f"https://api.github.com/repos/{repo}/actions/workflows/runs-list-probe.yml/runs?per_page=100"
+          start = time.monotonic()
+          for at in (0, 0.5, 1, 1.5, 2, 3, 4, 5, 7, 9, 12, 15, 20, 25, 30):
+              time.sleep(max(0, at - (time.monotonic() - start)))
+              request = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}",
+                                                             "Accept": "application/vnd.github+json",
+                                                             "User-Agent": "runs-list-probe"})
+              try:
+                  with urllib.request.urlopen(request, timeout=20) as response:
+                      runs = json.load(response)["workflow_runs"]
+              except Exception as exc:
+                  print("PROBE " + json.dumps({"own": own, "t": round(time.monotonic() - start, 2), "error": str(exc)}))
+                  continue
+              mine = next((run for run in runs if run["id"] == own), None)
+              print("PROBE " + json.dumps({
+                  "own": own, "t": round(time.monotonic() - start, 2),
+                  "status": mine["status"] if mine else None,
+                  "runs": [[run["id"], run["created_at"], run["status"]] for run in runs]}))
+          PY
