@@ -77,8 +77,8 @@ Requests). GitHub signs the commit its squash merge makes, so GitHub's own
 signature satisfies the signature rule on `main`, and what requires a person's
 signature is the `signed-landing` check, which a ruleset nobody can bypass
 requires. Merge commits are off because no pull request here lands as it is:
-`AS_IS_HEADS` in the workflow is empty. GitHub's rebase merge makes commits
-with no signature, which the rule refuses.
+`AS_IS_HEADS` and `AS_IS_LINES` in the workflow are empty. GitHub's rebase
+merge makes commits with no signature, which the rule refuses.
 
 ## Apply a change
 
