@@ -8,18 +8,22 @@ repository admin applies it with `gh` from the repository root.
 | --- | --- |
 | `signed-commits.json` | A verified signature on every commit added to `main`. No bypass actors. |
 | `required-checks.json` | `main`: the `signed-landing` check must pass. No bypass actors. |
-| `main.json` | `main`: pull requests with two approvals and resolved review threads, merge commits only; no deletion or force push. Organization admins can bypass it when merging a pull request. |
+| `main.json` | `main`: pull requests with two approvals and resolved review threads, squash merges only; no deletion or force push. Organization admins can bypass it when merging a pull request. |
 
 Every commit that a push or merge adds to `main` needs a verified signature.
 Commits already on the branch aren't checked again, but an old unsigned commit
 that a push or merge brings into an existing branch from another one is
 refused like a new one. Commits on a pull request's branch don't need one
 while it is open. Before it merges, a maintainer rewrites the branch as one
-commit, signs that commit with their own key and pushes it, and then merges it
-with a merge commit, which GitHub signs. So the target branch gains one commit
-a person signed, and one merge commit. For a pull request from a fork, that
-push needs "Allow edits by maintainers". Without it, a maintainer opens the
-same change from a branch in this repository.
+commit, signs that commit with their own key and pushes it. For a pull request
+from a fork, that push needs "Allow edits by maintainers". Without it, a
+maintainer opens the same change from a branch in this repository. Once
+`signed-landing` passes, the pull request is squash-merged: GitHub makes one
+commit on `main`, carrying the signed commit's message, and signs it itself.
+So `main` gains that one commit, and no merge commit. The commit the
+maintainer signed stays as the pull request's head, which GitHub keeps as
+`refs/pull/<number>/head`; when `squash-sign merge` makes the merge, the
+landed commit's `Signed-commit:` line names it.
 
 The maintainer's push dismisses earlier approvals. Two people approve again,
 or an organization admin merges the pull request through the review ruleset's
@@ -68,9 +72,12 @@ the repository draws on that token's hourly allowance of requests. A flood of
 pull request events can use it up, and the check then fails for every pull
 request until the hour is over.
 
-The repository's settings allow merge commits only (Settings → General → Pull
-Requests). GitHub's squash merge would make the commit itself and sign it with
-GitHub's key, so no person's signature would reach the branch. Its rebase
+The repository's settings allow squash merges only (Settings → General → Pull
+Requests). GitHub signs the commit its squash merge makes, so GitHub's own
+signature satisfies the signature rule on `main`, and what requires a person's
+signature is the `signed-landing` check, which a ruleset nobody can bypass
+requires. Merge commits are off because no pull request here lands as it is:
+`AS_IS_HEADS` and `AS_IS_LINES` in the workflow are empty. GitHub's rebase
 merge makes commits with no signature, which the rule refuses.
 
 ## Apply a change
@@ -107,21 +114,26 @@ apply the file. When a required check moves from one ruleset to another, apply
 the one that gains it first.
 
 The merge-method setting isn't a ruleset. To set a repository up from these
-files, apply `signed-commits.json` first, allow merge commits, apply the other
-files, then turn squash and rebase merges off. No step leaves the repository
-unable to merge, and unsigned commits can't land after the first one. The
-chain stops at the first step that fails. Fix that step and run the chain
-again: applying a file twice is harmless. Run it only once
+files, apply `signed-commits.json` first, allow squash merges, apply the other
+files, then turn merge commits and rebase merges off. No step leaves the
+repository unable to merge, and unsigned commits can't land after the first
+one. The chain stops at the first step that fails. Fix that step and run the
+chain again: applying a file twice is harmless. Run it only once
 `signed-landing.yml` is on `main`, the default branch, and the Actions policy
 allows it. A pull request that is already open shows the check as expected
 until its next push or edit: edit its title or description to start a run.
 
+A change to the merge methods on a repository that is already set up needs the
+same order, so run this chain for it too. Applying `main.json` alone would
+leave no method that both the ruleset and the setting allow, and nothing could
+merge until the setting followed.
+
 ```bash
 apply .github/rulesets/signed-commits.json &&
-  gh api -X PATCH "$repo" -F allow_merge_commit=true --silent &&
+  gh api -X PATCH "$repo" -F allow_squash_merge=true --silent &&
   apply .github/rulesets/required-checks.json &&
   apply .github/rulesets/main.json &&
-  gh api -X PATCH "$repo" -F allow_merge_commit=true -F allow_squash_merge=false -F allow_rebase_merge=false --silent
+  gh api -X PATCH "$repo" -F allow_merge_commit=false -F allow_squash_merge=true -F allow_rebase_merge=false --silent
 ```
 
 ## Check that GitHub matches
@@ -161,6 +173,6 @@ else
 fi
 ```
 
-Every line should say `matches`, and the settings should show merge commits
+Every line should say `matches`, and the settings should show squash merges
 only. `includes_parents=false` leaves out organization rulesets, which these
 files don't hold.
